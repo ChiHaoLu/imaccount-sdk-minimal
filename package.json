@@ -1,0 +1,12 @@
+{
+    "private": true,
+    "name": "my-monorepo",
+    "version": "1.0.0",
+    "workspaces": [
+        "packages/front-end",
+        "packages/back-end"
+    ],
+    "devDependencies": {
+        "typescript": "^5.0.0"
+    }
+}
