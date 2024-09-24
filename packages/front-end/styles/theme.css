@@ -1,0 +1,71 @@
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background-color: #ffe4e1;
+    /* Light pastel pink */
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    color: #2c3e50;
+    text-align: center;
+    margin-top: 20px;
+}
+
+div {
+    margin: 20px auto;
+    padding: 20px;
+    max-width: 600px;
+    background-color: #ffffff;
+    /* White */
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #2c3e50;
+    /* Darker blue */
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    /* Light grey */
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background-color: #82c91e;
+    /* Pastel green */
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+button:disabled {
+    background-color: #adb5bd;
+    /* Grey */
+}
+
+button:hover:not(:disabled) {
+    background-color: #74b816;
+    /* Darker pastel green */
+}
+
+p {
+    margin: 10px 0;
+    font-size: 14px;
+    color: #2c3e50;
+    /* Darker blue */
+}

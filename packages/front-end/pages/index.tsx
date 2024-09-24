@@ -5,6 +5,7 @@ import {
   imAccount,
   BundlerProvider,
   BundlerMode,
+  getPublicClient,
 } from "@consenlabs/imaccount-sdk";
 import { ethers, Eip1193Provider, BrowserProvider } from "ethers";
 import { JsonRpcSignerECDSAValidator } from "./JsonRpcSignerECDSAValidator";
@@ -19,8 +20,8 @@ const Home = () => {
   const [accountInfo, setAccountInfo] = useState<{
     account: imAccount;
     isDeployed: boolean;
+    lowBalance: boolean;
   } | null>(null);
-  const [chainID, setChainID] = useState(0);
   const [loading, setLoading] = useState(false);
   const [initLoading, setInitLoading] = useState(false);
   const [bundlerRpcUrl, setBundlerRpcUrl] = useState(
@@ -32,15 +33,6 @@ const Home = () => {
   const ECDSA_VALIDATOR_ADDRESS = ADDRESS.SEPOLIA.ecdsaValidator;
   const ACCOUNT_FACTORY_ADDRESS = ADDRESS.SEPOLIA.imAccountFactory;
   const ENTRY_FACTORY_ADDRESS = ADDRESS.SEPOLIA.accountEntryProxyFactory;
-
-  const fetchData = async () => {
-    const bundler = new BundlerProvider({
-      url: bundlerRpcUrl,
-      entryPoint: ENTRY_POINT_ADDRESS,
-      mode: BundlerMode.Auto,
-    });
-    setChainID(Number(await bundler.getChainId()));
-  };
 
   const initAccount = async () => {
     setInitLoading(true);
@@ -66,7 +58,14 @@ const Home = () => {
         validator: validator,
         userSalt: userSaltBigInt,
       });
-      setAccountInfo({ account, isDeployed: false });
+      const balance = await getPublicClient(bundlerRpcUrl).getBalance({
+        address: account.getSenderAddress(),
+      });
+      setAccountInfo({
+        account,
+        isDeployed: false,
+        lowBalance: balance <= BigInt(0.06999999 * 10 ** 18),
+      });
     } catch (error) {
       try {
         const entryFactory = new AccountEntryFactory({
@@ -77,13 +76,21 @@ const Home = () => {
           validator: validator,
           userSalt: userSaltBigInt,
         });
+        const entryAddress = await entryFactory.getAddress();
         const account = await imAccount.import({
           rpcUrl: bundlerRpcUrl,
           bundler: bundler,
-          entryAddress: await entryFactory.getAddress(),
+          entryAddress: entryAddress,
           validator: validator,
         });
-        setAccountInfo({ account, isDeployed: true });
+        const balance = await getPublicClient(bundlerRpcUrl).getBalance({
+          address: entryAddress,
+        });
+        setAccountInfo({
+          account,
+          isDeployed: true,
+          lowBalance: balance <= BigInt(0.06999999 * 10 ** 18),
+        });
       } catch (error) {
         console.error(error);
       }
@@ -92,7 +99,6 @@ const Home = () => {
   };
 
   useEffect(() => {
-    fetchData().catch(console.error);
     initAccount().catch(console.error);
   }, []);
 
@@ -114,7 +120,30 @@ const Home = () => {
 
   return (
     <div>
-      <h1>Current Chain ID: {chainID}</h1>
+      <h1>Create imToken AA Wallet on Sepolia</h1>
+      <div>
+        <p>
+          Twitter:{" "}
+          <a
+            href="https://twitter.com/murmurlu"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            @murmurlu
+          </a>
+        </p>
+        <p>
+          Github Repo:{" "}
+          <a
+            href="https://github.com/ChiHaoLu/imaccount-sdk-minimal
+"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            imaccount-sdk-minimal
+          </a>
+        </p>
+      </div>
       <div>
         <label>
           Alchemy API URL:
@@ -126,8 +155,6 @@ const Home = () => {
             required
           />
         </label>
-      </div>
-      <div>
         <label>
           Salt:
           <input
@@ -137,23 +164,28 @@ const Home = () => {
             required
           />
         </label>
+
+        <button onClick={initAccount} disabled={initLoading}>
+          {initLoading ? "Loading Account..." : "Load Account"}
+        </button>
       </div>
-      <button onClick={initAccount} disabled={initLoading}>
-        {initLoading ? "Loading Account..." : "Load Account"}
-      </button>
       {accountInfo ? (
         <div>
           <p>Entry Address: {accountInfo.account.getSenderAddress()}</p>
           <p>Account Address: {accountInfo.account.getAccountsAddress()[0]}</p>
           <p>Is Deployed: {accountInfo.isDeployed ? "Yes" : "No"}</p>
           {/* Show the Deploy button only if the account is not deployed */}
-          {!accountInfo.isDeployed && (
-            <button onClick={handleDeploy} disabled={loading}>
-              {loading
-                ? "Deploying..."
-                : "Deploy Account (Please deposit 0.07 ETH to your Entry Address before click this button)"}
-            </button>
-          )}
+          {!accountInfo.isDeployed &&
+            (accountInfo.lowBalance ? (
+              <p>
+                Please deposit 0.07 ETH to your Entry Address first.
+                <br /> After depositing, click the Load Account.
+              </p>
+            ) : (
+              <button onClick={handleDeploy} disabled={loading}>
+                {loading ? "Deploying..." : "Deploy Account"}
+              </button>
+            ))}
         </div>
       ) : (
         <p>Loading account details...</p>
