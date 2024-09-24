@@ -93,7 +93,7 @@ const Home = () => {
 
   return (
     <div>
-      <h1>SDK Block Number: {chainID}</h1>
+      <h1>Current Chain ID: {chainID}</h1>
       {accountInfo ? (
         <div>
           <p>Entry Address: {accountInfo.account.getSenderAddress()}</p>
